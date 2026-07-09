@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: user-service
+  namespace: ecom
+  labels:
+    app: user-service
+
+spec:
+  replicas: 1
+
+  revisionHistoryLimit: 5
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      app: user-service
+
+  template:
+    metadata:
+      labels:
+        app: user-service
+        version: v1
+
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+
+    spec:
+      terminationGracePeriodSeconds: 30
+
+      containers:
+        - name: user-service
+
+          image: sanj231123/user-service:v6
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 5006
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5006
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5006
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          env:
+            - name: PORT
+              value: "5006"
+
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: DB_HOST
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: DB_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: DB_PASSWORD
+
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: DB_NAME
+
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: DB_PORT
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: user-secret
+                  key: JWT_SECRET

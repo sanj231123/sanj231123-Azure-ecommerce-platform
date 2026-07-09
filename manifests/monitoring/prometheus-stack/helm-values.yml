@@ -1,0 +1,38 @@
+grafana:
+  adminPassword: admin123
+
+  service:
+    type: ClusterIP
+
+prometheus:
+  service:
+    type: ClusterIP
+
+  prometheusSpec:
+
+    retention: 7d
+
+    scrapeInterval: 30s
+
+    evaluationInterval: 30s
+
+    podMetadata:
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+
+alertmanager:
+  enabled: true
+
+prometheus-node-exporter:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
+
+prometheusOperator:
+
+  deploymentAnnotations:
+    sidecar.istio.io/rewriteAppHTTPProbers: "true"
+
+defaultRules:
+  create: true

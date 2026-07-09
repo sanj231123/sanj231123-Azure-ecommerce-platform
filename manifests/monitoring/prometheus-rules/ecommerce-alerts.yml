@@ -1,0 +1,153 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+
+metadata:
+  name: ecommerce-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+
+spec:
+  groups:
+
+  #################################################################
+  # Application Availability Alerts
+  #################################################################
+
+  - name: ecommerce-services
+
+    rules:
+
+    - alert: APIGatewayDown
+      expr: up{job="api-gateway"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: API Gateway Down
+        description: API Gateway is unreachable.
+
+    - alert: AuthServiceDown
+      expr: up{job="auth-service"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Auth Service Down
+        description: Auth Service is unreachable.
+
+    - alert: UserServiceDown
+      expr: up{job="user-service"} == 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: User Service Down
+        description: User Service is unreachable.
+
+    - alert: ProductServiceDown
+      expr: up{job="product-service"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Product Service Down
+        description: Product Service is unreachable.
+
+    - alert: CartServiceDown
+      expr: up{job="cart-service"} == 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: Cart Service Down
+        description: Cart Service is unreachable.
+
+    - alert: OrderServiceDown
+      expr: up{job="order-service"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Order Service Down
+        description: Order Service is unreachable.
+
+    - alert: PaymentServiceDown
+      expr: up{job="payment-service"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Payment Service Down
+        description: Payment Service is unreachable.
+
+    - alert: NotificationServiceDown
+      expr: up{job="notification-service"} == 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: Notification Service Down
+        description: Notification Service is unreachable.
+
+  #################################################################
+  # Kubernetes Infrastructure Alerts
+  #################################################################
+
+  - name: kubernetes-health
+
+    rules:
+
+    - alert: PodCrashLooping
+      expr: increase(kube_pod_container_status_restarts_total[10m]) > 3
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: Pod restarting frequently
+        description: Pod {{ $labels.pod }} has restarted more than 3 times in the last 10 minutes.
+
+    - alert: NodeNotReady
+      expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: Kubernetes node is not Ready
+        description: Node {{ $labels.node }} is not Ready.
+
+    - alert: HighPodCPUUsage
+      expr: (sum(rate(container_cpu_usage_seconds_total{container!="",image!=""}[5m])) by (pod) * 100) > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: High CPU Usage
+        description: Pod {{ $labels.pod }} CPU usage is above 80%.
+
+    - alert: HighPodMemoryUsage
+      expr: (container_memory_working_set_bytes{container!="",image!=""} / container_spec_memory_limit_bytes{container!="",image!=""}) * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: High Memory Usage
+        description: Pod {{ $labels.pod }} memory usage is above 85%.
+
+    - alert: DeploymentUnavailable
+      expr: kube_deployment_status_replicas_available < kube_deployment_spec_replicas
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: Deployment has unavailable replicas
+        description: Deployment {{ $labels.deployment }} has unavailable replicas.
+
+    - alert: PersistentVolumeAlmostFull
+      expr: (kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes) * 100 < 15
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: Persistent Volume almost full
+        description: PVC {{ $labels.persistentvolumeclaim }} has less than 15% free space remaining. 

@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: notification-service
+  namespace: ecom
+  labels:
+    app: notification-service
+
+spec:
+  replicas: 1
+
+  revisionHistoryLimit: 5
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      app: notification-service
+
+  template:
+    metadata:
+      labels:
+        app: notification-service
+        version: v1
+
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+
+    spec:
+      terminationGracePeriodSeconds: 30
+
+      containers:
+        - name: notification-service
+
+          image: sanj231123/notification-service:v10
+          imagePullPolicy: Always
+
+          ports:
+            - name: http
+              containerPort: 5008
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5008
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5008
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          env:
+            - name: RABBITMQ_URL
+              value: "amqp://rabbitmq:5672"
+
+            - name: EMAIL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secret
+                  key: EMAIL_USER
+
+            - name: EMAIL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: notification-secret
+                  key: EMAIL_PASS
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

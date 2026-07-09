@@ -1,0 +1,96 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+
+# Namespace
+- namespace.yml
+
+# ------------------------------------------------------------------------------
+# Platform
+# ------------------------------------------------------------------------------
+
+- platform/mysql/mysql-secret.yml
+- platform/mysql/pvc.yml
+- platform/mysql/deployment.yml
+- platform/mysql/service.yml
+
+- platform/redis/deployment.yml
+- platform/redis/service.yml
+
+- platform/rabbitmq/rabbitmq-secret.yml
+- platform/rabbitmq/deployment.yml
+- platform/rabbitmq/rabbitmq-service.yaml
+
+# ------------------------------------------------------------------------------
+# Frontend
+# ------------------------------------------------------------------------------
+
+- frontend/deployment.yml
+- frontend/service.yml
+
+# ------------------------------------------------------------------------------
+# Microservices
+# ------------------------------------------------------------------------------
+
+- services/api-gateway/deployment.yml
+- services/api-gateway/service.yml
+
+- services/auth-service/deployment.yml
+- services/auth-service/service.yml
+
+- services/cart-service/deployment.yml
+- services/cart-service/service.yml
+
+- services/order-service/deployment.yml
+- services/order-service/service.yml
+
+- services/product-service/deployment.yml
+- services/product-service/service.yml
+
+- services/payment-service/payment-secret.yml
+- services/payment-service/deployment.yml
+- services/payment-service/service.yml
+
+- services/user-service/user-secret.yml
+- services/user-service/deployment.yml
+- services/user-service/user-service-v2-deployment.yml
+- services/user-service/service.yml
+
+- services/notification-service/notification-deployment.yml
+- services/notification-service/service.yml
+
+# ------------------------------------------------------------------------------
+# Gateway API
+# ------------------------------------------------------------------------------
+
+- networking/gateway-api/gatewayclass.yml
+- networking/gateway-api/gateway.yml
+- networking/gateway-api/httproute.yml
+- networking/gateway-api/mtls.yml
+
+# Canary
+- networking/gateway-api/canary/user-service-destinationrule.yml
+- networking/gateway-api/canary/user-service-virtualservice.yml
+
+# ------------------------------------------------------------------------------
+# Network Policies
+# ------------------------------------------------------------------------------
+
+- security/default-deny.yml
+- security/internal-ecom.yml
+- security/allow-dns.yml
+- security/allow-istio.yml
+- security/allow-prometheus.yml
+- security/allow-mysql.yml
+- security/allow-egress-razorpay.yml
+- security/rabbitmq-policy.yml
+
+# ------------------------------------------------------------------------------
+# HPA
+# ------------------------------------------------------------------------------
+
+- hpa/cart-hpa.yml
+- hpa/order-hpa.yml
+- hpa/payment-hpa.yml
+- hpa/product-hpa.yml

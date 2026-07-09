@@ -1,0 +1,29 @@
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+
+metadata:
+  name: allow-mesh-traffic
+  namespace: ecom
+
+spec:
+  action: ALLOW
+
+  rules:
+
+    # Allow traffic from workloads inside the ecom namespace
+    - from:
+        - source:
+            namespaces:
+              - ecom
+
+    # Allow Prometheus scraping
+    - from:
+        - source:
+            namespaces:
+              - monitoring
+
+    # Allow traffic coming through the Istio Ingress Gateway
+    - from:
+        - source:
+            namespaces:
+              - istio-system
