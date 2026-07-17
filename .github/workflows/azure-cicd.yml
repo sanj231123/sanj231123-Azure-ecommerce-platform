@@ -1,0 +1,199 @@
+name: Azure Ecommerce Enterprise CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+
+    outputs:
+      services: ${{ steps.filter.outputs.changes }}
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Detect Changed Microservices
+        id: filter
+        uses: dorny/paths-filter@v3
+
+        with:
+          filters: |
+
+            frontend:
+              - 'app/frontend/**'
+
+            api-gateway:
+              - 'app/api-gateway/**'
+
+            auth-service:
+              - 'app/auth-service/**'
+
+            user-service:
+              - 'app/user-service/**'
+
+            product-service:
+              - 'app/product-service/**'
+
+            cart-service:
+              - 'app/cart-service/**'
+
+            order-service:
+              - 'app/order-service/**'
+
+            payment-service:
+              - 'app/payment-service/**'
+
+            notification-service:
+              - 'app/notification-service/**'
+
+      - name: Print Changed Services
+        run: |
+          echo "Changed Services:"
+          echo '${{ steps.filter.outputs.changes }}'
+
+  build-and-push:
+
+    name: Build & Push Images
+
+    needs: detect-changes
+
+    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Generate Short Git SHA
+        run: |
+          echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      ############################################################
+      # Login to Azure
+      ############################################################
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      ############################################################
+      # Login to Azure Container Registry
+      ############################################################
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+
+      ############################################################
+      # Build Docker Image
+      ############################################################
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/${{ matrix.service }}:${IMAGE_TAG} \
+            ./app/${{ matrix.service }}
+
+      ############################################################
+      # Push Docker Image
+      ############################################################
+
+      - name: Push Docker Image
+        run: |
+          docker push \
+            ${{ secrets.ACR_NAME }}.azurecr.io/${{ matrix.service }}:${IMAGE_TAG}
+
+      ############################################################
+      # Display Image Information
+      ############################################################
+
+      - name: Display Image
+        run: |
+          echo ""
+          echo "Service : ${{ matrix.service }}"
+          echo "Image   : ${{ secrets.ACR_NAME }}.azurecr.io/${{ matrix.service }}:${IMAGE_TAG}"
+          echo ""
+
+      ############################################################
+      # Update Kubernetes Manifest
+      ############################################################
+
+      - name: Update Kubernetes Manifest
+        run: |
+          declare -A MANIFESTS
+
+          MANIFESTS["frontend"]="manifests/frontend/deployment.yml"
+          MANIFESTS["api-gateway"]="manifests/services/api-gateway/deployment.yml"
+          MANIFESTS["auth-service"]="manifests/services/auth-service/deployment.yml"
+          MANIFESTS["user-service"]="manifests/services/user-service/deployment.yml"
+          MANIFESTS["product-service"]="manifests/services/product-service/deployment.yml"
+          MANIFESTS["cart-service"]="manifests/services/cart-service/deployment.yml"
+          MANIFESTS["order-service"]="manifests/services/order-service/deployment.yml"
+          MANIFESTS["payment-service"]="manifests/services/payment-service/deployment.yml"
+          MANIFESTS["notification-service"]="manifests/services/notification-service/notification-deployment.yml"
+
+          FILE="${MANIFESTS["${{ matrix.service }}"]}"
+
+          echo "Updating $FILE"
+
+          sed -i "s|image: .*|image: ${{ secrets.ACR_NAME }}.azurecr.io/${{ matrix.service }}:${IMAGE_TAG}|g" "$FILE"
+
+          echo "MANIFEST_FILE=$FILE" >> $GITHUB_ENV
+
+      ############################################################
+      # Configure Git
+      ############################################################
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{ vars.GITOPS_USER_NAME }}"
+          git config --global user.email "${{ vars.GITOPS_USER_EMAIL }}"
+
+      ############################################################
+      # Commit Manifest
+      ############################################################
+
+      - name: Commit Manifest
+        run: |
+          git add "${{ env.MANIFEST_FILE }}"
+
+          if git diff --cached --quiet; then
+            echo "No manifest changes."
+            exit 0
+          fi
+
+          git commit -m "ci(${{ matrix.service }}): update image ${IMAGE_TAG} [skip ci]"
+
+      ############################################################
+      # Push Manifest
+      ############################################################
+
+      - name: Push Manifest
+        run: |
+          git pull --rebase origin main
+          git push origin HEAD:main   
+
