@@ -37,7 +37,7 @@ spec:
       containers:
         - name: payment-service
 
-          image: sanj231123/payment-service:27f025b
+          image: acrecommerce231123.azurecr.io/payment-service:27f025b
           imagePullPolicy: Always
 
           ports:

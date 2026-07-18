@@ -1,8 +1,8 @@
 resource "azurerm_monitor_diagnostic_setting" "aks" {
 
-  name                       = "aks-diagnostics"
+  name = "aks-diagnostics"
 
-  target_resource_id         = var.aks_id
+  target_resource_id = var.aks_id
 
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
@@ -13,9 +13,9 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
 
 resource "azurerm_monitor_diagnostic_setting" "acr" {
 
-  name                       = "acr-diagnostics"
+  name = "acr-diagnostics"
 
-  target_resource_id         = var.acr_id
+  target_resource_id = var.acr_id
 
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
@@ -26,9 +26,9 @@ resource "azurerm_monitor_diagnostic_setting" "acr" {
 
 resource "azurerm_monitor_diagnostic_setting" "storage" {
 
-  name                       = "storage-diagnostics"
+  name = "storage-diagnostics"
 
-  target_resource_id         = var.storage_account_id
+  target_resource_id = var.storage_account_id
 
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
@@ -39,9 +39,9 @@ resource "azurerm_monitor_diagnostic_setting" "storage" {
 
 resource "azurerm_monitor_diagnostic_setting" "keyvault" {
 
-  name                       = "keyvault-diagnostics"
+  name = "keyvault-diagnostics"
 
-  target_resource_id         = var.key_vault_id
+  target_resource_id = var.key_vault_id
 
   log_analytics_workspace_id = var.log_analytics_workspace_id
 

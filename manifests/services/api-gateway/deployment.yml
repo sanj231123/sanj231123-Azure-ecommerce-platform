@@ -35,7 +35,7 @@ spec:
       containers:
         - name: api-gateway
 
-          image: sanj231123/api-gateway:v18
+          image: acrecommerce231123.azurecr.io/api-gateway:v18
           imagePullPolicy: Always
 
           ports:

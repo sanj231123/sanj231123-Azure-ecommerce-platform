@@ -48,3 +48,8 @@ kubeconfig
 
 # Misc
 *.bak
+
+**/.terraform/
+**/.terraform.lock.hcl
+*.bkp
+github-federated.json

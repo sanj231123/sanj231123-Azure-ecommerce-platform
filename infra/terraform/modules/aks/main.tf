@@ -51,10 +51,10 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   tags = {
 
-    Project     = var.project_name
+    Project = var.project_name
 
     Environment = var.environment
 
-    ManagedBy   = "Terraform"
+    ManagedBy = "Terraform"
   }
 }

@@ -36,7 +36,7 @@ spec:
       containers:
         - name: auth-service
 
-          image: sanj231123/auth-service:v5
+          image: acrecommerce231123.azurecr.io/auth-service:v5
           imagePullPolicy: Always
 
           ports:

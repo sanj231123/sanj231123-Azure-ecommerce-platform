@@ -37,7 +37,7 @@ spec:
       containers:
         - name: notification-service
 
-          image: sanj231123/notification-service:v10
+          image: acrecommerce231123.azurecr.io/notification-service:v10
           imagePullPolicy: Always
 
           ports:
