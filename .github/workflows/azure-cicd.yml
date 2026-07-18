@@ -68,17 +68,22 @@ jobs:
 
     name: Build & Push Images
 
-    needs: detect-changes
-
-    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
-
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
 
       matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+        service:
+          - frontend
+          - api-gateway
+          - auth-service
+          - user-service
+          - product-service
+          - cart-service
+          - order-service
+          - payment-service
+          - notification-service
 
     steps:
 
