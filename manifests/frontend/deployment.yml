@@ -37,7 +37,7 @@ spec:
       containers:
         - name: frontend
 
-          image: acrecommerce231123.azurecr.io/frontend:b9e44eb
+          image: acrecommerce231123.azurecr.io/frontend:404c625
           imagePullPolicy: Always
 
           ports:
