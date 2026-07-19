@@ -37,7 +37,7 @@ spec:
       containers:
         - name: user-service
 
-          image: acrecommerce231123.azurecr.io/user-service:b922fde
+          image: acrecommerce231123.azurecr.io/user-service:d2f8d39
           imagePullPolicy: Always
 
           ports:
