@@ -36,7 +36,7 @@ spec:
       containers:
         - name: cart-service
 
-          image: acrecommerce231123.azurecr.io/cart-service:b9e44eb
+          image: acrecommerce231123.azurecr.io/cart-service:404c625
           imagePullPolicy: Always
 
           ports:
