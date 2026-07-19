@@ -21,41 +21,30 @@ jobs:
       services: ${{ steps.filter.outputs.changes }}
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Detect Changed Microservices
         id: filter
         uses: dorny/paths-filter@v3
-
         with:
           filters: |
-
             frontend:
               - 'app/frontend/**'
-
             api-gateway:
               - 'app/api-gateway/**'
-
             auth-service:
               - 'app/auth-service/**'
-
             user-service:
               - 'app/user-service/**'
-
             product-service:
               - 'app/product-service/**'
-
             cart-service:
               - 'app/cart-service/**'
-
             order-service:
               - 'app/order-service/**'
-
             payment-service:
               - 'app/payment-service/**'
-
             notification-service:
               - 'app/notification-service/**'
 
@@ -65,28 +54,22 @@ jobs:
           echo '${{ steps.filter.outputs.changes }}'
 
   build-and-push:
-
     name: Build & Push Images
-
     runs-on: ubuntu-latest
-
+    
+    # 1. Wait for the change detection job to finish
+    needs: detect-changes
+    
+    # 2. Skip this entire job if no microservices were modified (e.g. documentation changes)
+    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
+    
     strategy:
       fail-fast: false
-
+      # 3. Use the dynamic output array from the change detection job
       matrix:
-        service:
-          - frontend
-          - api-gateway
-          - auth-service
-          - user-service
-          - product-service
-          - cart-service
-          - order-service
-          - payment-service
-          - notification-service
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -97,7 +80,6 @@ jobs:
       ############################################################
       # Login to Azure
       ############################################################
-
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -108,7 +90,6 @@ jobs:
       ############################################################
       # Login to Azure Container Registry
       ############################################################
-
       - name: Login to Azure Container Registry
         run: |
           az acr login --name ${{ secrets.ACR_NAME }}
@@ -116,7 +97,6 @@ jobs:
       ############################################################
       # Build Docker Image
       ############################################################
-
       - name: Build Docker Image
         run: |
           docker build \
@@ -126,7 +106,6 @@ jobs:
       ############################################################
       # Push Docker Image
       ############################################################
-
       - name: Push Docker Image
         run: |
           docker push \
@@ -135,7 +114,6 @@ jobs:
       ############################################################
       # Display Image Information
       ############################################################
-
       - name: Display Image
         run: |
           echo ""
@@ -146,7 +124,6 @@ jobs:
       ############################################################
       # Update Kubernetes Manifest
       ############################################################
-
       - name: Update Kubernetes Manifest
         run: |
           declare -A MANIFESTS
@@ -172,7 +149,6 @@ jobs:
       ############################################################
       # Configure Git
       ############################################################
-
       - name: Configure Git
         run: |
           git config --global user.name "${{ vars.GITOPS_USER_NAME }}"
@@ -181,7 +157,6 @@ jobs:
       ############################################################
       # Commit Manifest
       ############################################################
-
       - name: Commit Manifest
         run: |
           git add "${{ env.MANIFEST_FILE }}"
@@ -196,9 +171,7 @@ jobs:
       ############################################################
       # Push Manifest
       ############################################################
-
       - name: Push Manifest
         run: |
           git pull --rebase origin main
-          git push origin HEAD:main   
-
+          git push origin HEAD:main
