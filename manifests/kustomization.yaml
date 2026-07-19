@@ -59,7 +59,7 @@ resources:
 
 - services/notification-service/notification-deployment.yml
 - services/notification-service/service.yml
-- secrets/notification-secret.yml  
+- services/notification-service/secret.yml  
 
 # ------------------------------------------------------------------------------
 # Gateway API
