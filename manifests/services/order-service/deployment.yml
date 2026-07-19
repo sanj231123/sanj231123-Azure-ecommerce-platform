@@ -37,7 +37,7 @@ spec:
       containers:
         - name: order-service
 
-          image: acrecommerce231123.azurecr.io/order-service:b922fde
+          image: acrecommerce231123.azurecr.io/order-service:0d6018e
           imagePullPolicy: Always
 
           ports:
