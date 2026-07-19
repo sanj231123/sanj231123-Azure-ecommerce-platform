@@ -64,9 +64,8 @@ resources:
 # Gateway API
 # ------------------------------------------------------------------------------
 
-- networking/gateway-api/gatewayclass.yml
 - networking/gateway-api/gateway.yml
-- networking/gateway-api/httproute.yml
+- networking/gateway-api/virtualservice.yml
 - networking/gateway-api/mtls.yml
 
 # Canary
