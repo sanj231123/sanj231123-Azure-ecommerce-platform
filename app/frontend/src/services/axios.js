@@ -5,7 +5,7 @@ import axios from "axios";
 // ======================================
 
 const API = axios.create({
-  baseURL: "http://shop.local:9095/api",
+  baseURL: "http://20.235.202.101/api",
 });
 
 // ======================================
