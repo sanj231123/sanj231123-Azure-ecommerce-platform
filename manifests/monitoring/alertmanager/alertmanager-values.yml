@@ -1,0 +1,4 @@
+alertmanager:
+  alertmanagerSpec:
+    secrets:
+      - alertmanager-slack-secret
